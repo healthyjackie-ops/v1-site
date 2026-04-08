@@ -1,0 +1,2387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V1 — 物理AI的视觉皮层</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Noto+Serif+SC:wght@400;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --orange: #E85D26;
+  --orange-glow: rgba(232, 93, 38, 0.15);
+  --teal: #0A8E8E;
+  --teal-light: rgba(10, 142, 142, 0.12);
+  --dark: #0D0D0D;
+  --dark-card: #161616;
+  --dark-surface: #1A1A1A;
+  --dark-border: #2A2A2A;
+  --white: #F5F5F5;
+  --gray-300: #D1D1D1;
+  --gray-400: #A0A0A0;
+  --gray-500: #6B6B6B;
+  --gold: #C9A84C;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html {
+  scroll-behavior: smooth;
+  background: var(--dark);
+  color: var(--white);
+  font-family: 'Noto Sans SC', sans-serif;
+}
+
+body {
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== COVER PAGE ===== */
+.section-cover {
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  background: var(--dark);
+}
+
+.cover-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.cover-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 60%;
+  opacity: 0.25;
+  filter: brightness(0.5) contrast(1.2) saturate(0.6);
+}
+
+.cover-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(13,13,13,0.3) 0%,
+    rgba(13,13,13,0.1) 30%,
+    rgba(13,13,13,0.4) 70%,
+    rgba(13,13,13,0.95) 100%
+  );
+}
+
+.cover-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 40px;
+  max-width: 900px;
+}
+
+.cover-brand {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(72px, 12vw, 140px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--orange) 0%, #FF8A50 40%, var(--white) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: fadeUp 1s ease 0.3s forwards;
+}
+
+.cover-tagline-cn {
+  font-family: 'Noto Serif SC', serif;
+  font-size: clamp(22px, 3.5vw, 38px);
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1.4;
+  margin-bottom: 12px;
+  opacity: 0;
+  animation: fadeUp 1s ease 0.6s forwards;
+}
+
+.cover-tagline-en {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(13px, 1.8vw, 17px);
+  font-weight: 400;
+  color: var(--gray-400);
+  letter-spacing: 2px;
+  margin-bottom: 40px;
+  opacity: 0;
+  animation: fadeUp 1s ease 0.8s forwards;
+}
+
+.cover-keywords {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeUp 1s ease 1s forwards;
+}
+
+.cover-kw {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 8px 20px;
+  border: 1px solid rgba(232, 93, 38, 0.4);
+  border-radius: 100px;
+  color: var(--orange);
+  background: rgba(232, 93, 38, 0.08);
+}
+
+.cover-scroll {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+  animation: fadeUp 1s ease 1.3s forwards;
+}
+
+.cover-scroll span {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gray-500);
+}
+
+.cover-scroll .scroll-arrow {
+  width: 18px;
+  height: 18px;
+  border-right: 1.5px solid var(--gray-500);
+  border-bottom: 1.5px solid var(--gray-500);
+  transform: rotate(45deg);
+  animation: bounce 2s ease infinite;
+}
+
+/* ===== SECTION 1: HERO - AI EVOLUTION ===== */
+.section-hero {
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 40px 80px;
+  overflow: hidden;
+}
+
+.section-hero::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -20%;
+  width: 140%;
+  height: 160%;
+  background: 
+    radial-gradient(ellipse 600px 400px at 20% 30%, rgba(232, 93, 38, 0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 500px at 80% 60%, rgba(10, 142, 142, 0.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Subtle grid pattern */
+.section-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 80px 80px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  width: 100%;
+  text-align: center;
+}
+
+.hero-eyebrow {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin-bottom: 28px;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.2s forwards;
+}
+
+.hero-title {
+  font-family: 'Noto Serif SC', serif;
+  font-weight: 700;
+  font-size: clamp(36px, 5.5vw, 64px);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--white);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.4s forwards;
+}
+
+.hero-title .highlight {
+  background: linear-gradient(135deg, var(--orange) 0%, #FF8A50 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-subtitle {
+  font-size: clamp(16px, 2vw, 20px);
+  font-weight: 300;
+  color: var(--gray-400);
+  line-height: 1.7;
+  max-width: 700px;
+  margin: 0 auto 50px;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.6s forwards;
+}
+
+/* Source attribution */
+.hero-source {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  color: var(--gray-500);
+  margin-top: 24px;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 1s forwards;
+}
+
+/* Jensen Huang AI Evolution Image */
+.ai-evolution-image {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.8s forwards;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--dark-border);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+}
+
+.ai-evolution-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.hero-source a {
+  color: var(--gray-400);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--gray-500);
+}
+
+/* Call to action arrow */
+.hero-cta {
+  margin-top: 50px;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 1.2s forwards;
+}
+
+.hero-cta .question {
+  font-family: 'Noto Serif SC', serif;
+  font-size: clamp(18px, 2.5vw, 24px);
+  font-weight: 600;
+  color: var(--white);
+  line-height: 1.6;
+}
+
+.hero-cta .question .em {
+  color: var(--orange);
+}
+
+.scroll-hint {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 1.4s forwards;
+}
+
+.scroll-hint span {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gray-500);
+}
+
+.scroll-arrow {
+  width: 20px;
+  height: 20px;
+  border-right: 1.5px solid var(--gray-500);
+  border-bottom: 1.5px solid var(--gray-500);
+  transform: rotate(45deg);
+  animation: bounce 2s ease infinite;
+}
+
+/* ===== SECTION 2: TWO BATTLEFIELDS ===== */
+.section-battlefields {
+  min-height: 100vh;
+  padding: 100px 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.section-battlefields::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--dark-border) 20%, var(--dark-border) 80%, transparent 100%);
+}
+
+.bf-container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.bf-header {
+  text-align: center;
+  margin-bottom: 70px;
+}
+
+.bf-eyebrow {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 20px;
+}
+
+.bf-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 16px;
+}
+
+.bf-subtitle {
+  font-size: 17px;
+  font-weight: 300;
+  color: var(--gray-400);
+  max-width: 680px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* Two cards side by side */
+.bf-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  margin-bottom: 60px;
+}
+
+.bf-card {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  border-radius: 16px;
+  padding: 40px 36px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s ease;
+}
+
+.bf-card:hover {
+  border-color: rgba(255,255,255,0.08);
+}
+
+.bf-card.verified::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gray-400), var(--gray-500));
+}
+
+.bf-card.rising::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--orange), #FF8A50);
+}
+
+.bf-card .card-icon-svg {
+  margin-bottom: 20px;
+  display: block;
+}
+
+.bf-card .card-status {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 4px;
+}
+
+.bf-card.verified .card-status {
+  color: var(--gray-300);
+  background: rgba(255,255,255,0.06);
+}
+
+.bf-card.rising .card-status {
+  color: var(--orange);
+  background: var(--orange-glow);
+}
+
+.bf-card .card-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.bf-card .card-desc {
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--gray-400);
+  line-height: 1.8;
+  margin-bottom: 24px;
+}
+
+.bf-card .card-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid var(--dark-border);
+}
+
+.stat-row .stat-label {
+  font-size: 12px;
+  color: var(--gray-500);
+}
+
+.stat-row .stat-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.stat-row .stat-source {
+  font-size: 10px;
+  color: var(--gray-500);
+  margin-left: 6px;
+}
+
+/* V1 positioning strip */
+.bf-positioning {
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+  border-radius: 16px;
+  padding: 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.bf-positioning::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--teal), var(--orange));
+}
+
+.bf-positioning .pos-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.bf-positioning .pos-title .v1 {
+  color: var(--orange);
+}
+
+/* Timeline bar */
+.strategy-timeline {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-top: 24px;
+  position: relative;
+}
+
+.strategy-phase {
+  flex: 1;
+  padding: 20px 16px;
+  position: relative;
+  text-align: center;
+}
+
+.strategy-phase:not(:last-child)::after {
+  content: '→';
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray-500);
+  font-size: 18px;
+  z-index: 2;
+}
+
+.phase-period {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  color: var(--gray-500);
+  margin-bottom: 8px;
+}
+
+.phase-label {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.strategy-phase:nth-child(1) .phase-label { color: var(--gray-300); }
+.strategy-phase:nth-child(2) .phase-label { color: var(--teal); }
+.strategy-phase:nth-child(3) .phase-label { color: var(--orange); }
+
+.phase-detail {
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--gray-500);
+  line-height: 1.6;
+}
+
+.phase-markets {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.phase-tag {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--dark-border);
+  color: var(--gray-400);
+  white-space: nowrap;
+}
+
+/* Bottom message */
+.bf-bottom {
+  text-align: center;
+  margin-top: 50px;
+}
+
+.bf-bottom p {
+  font-size: 15px;
+  font-weight: 300;
+  color: var(--gray-400);
+  line-height: 1.8;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.bf-bottom .bold {
+  font-weight: 600;
+  color: var(--white);
+}
+
+/* ===== TRUST BANNER ===== */
+.section-trust {
+  padding: 80px 40px;
+  position: relative;
+  overflow: hidden;
+  background: var(--dark-surface);
+}
+
+.section-trust::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--dark-border) 20%, var(--dark-border) 80%, transparent 100%);
+}
+
+.section-trust::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--dark-border) 20%, var(--dark-border) 80%, transparent 100%);
+}
+
+.trust-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.trust-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #4ADE80;
+  background: rgba(74, 222, 128, 0.08);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  padding: 6px 18px;
+  border-radius: 100px;
+  margin-bottom: 28px;
+}
+
+.trust-badge .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4ADE80;
+  animation: pulse-dot 2s ease infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(74,222,128,0.4); }
+  50% { opacity: 0.8; box-shadow: 0 0 0 6px rgba(74,222,128,0); }
+}
+
+.trust-headline {
+  font-family: 'Noto Serif SC', serif;
+  font-size: clamp(22px, 3.5vw, 34px);
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--white);
+  margin-bottom: 32px;
+}
+
+.trust-headline .chip-highlight {
+  color: var(--orange);
+}
+
+.trust-timeline {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 28px;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.trust-milestone {
+  flex: 1;
+  position: relative;
+  text-align: center;
+  padding: 20px 12px;
+}
+
+.trust-milestone:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 28px;
+  right: 0;
+  width: 40px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--dark-border), var(--orange));
+  transform: translateX(50%);
+  z-index: 0;
+}
+
+.milestone-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin: 0 auto 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.trust-milestone:nth-child(1) .milestone-dot { background: #4ADE80; box-shadow: 0 0 12px rgba(74,222,128,0.4); }
+.trust-milestone:nth-child(2) .milestone-dot { background: var(--orange); box-shadow: 0 0 12px rgba(232,93,38,0.3); }
+.trust-milestone:nth-child(3) .milestone-dot { background: var(--orange); box-shadow: 0 0 12px rgba(232,93,38,0.3); }
+
+.milestone-year {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--white);
+  margin-bottom: 4px;
+}
+
+.milestone-label {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--gray-400);
+  line-height: 1.5;
+}
+
+.trust-footnote {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--gray-500);
+  line-height: 1.7;
+  max-width: 650px;
+  margin: 0 auto;
+}
+
+.trust-footnote strong {
+  color: var(--gray-300);
+  font-weight: 500;
+}
+
+/* ===== COMPETITIVE DIFFERENTIATION ===== */
+.section-diff {
+  padding: 100px 40px;
+  position: relative;
+  background: var(--dark);
+}
+
+.section-diff::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--dark-border) 20%, var(--dark-border) 80%, transparent 100%);
+}
+
+.diff-container { max-width: 1100px; margin: 0 auto; }
+
+.diff-header { text-align: center; margin-bottom: 60px; }
+
+.diff-eyebrow {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px; font-weight: 500;
+  letter-spacing: 4px; text-transform: uppercase;
+  color: var(--orange); margin-bottom: 20px;
+}
+
+.diff-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 700; margin-bottom: 16px;
+}
+
+.diff-subtitle {
+  font-size: 16px; font-weight: 300;
+  color: var(--gray-400); line-height: 1.8;
+  max-width: 700px; margin: 0 auto;
+}
+
+/* VS Grid */
+.vs-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0;
+  align-items: stretch;
+  margin-bottom: 50px;
+}
+
+.vs-card {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  border-radius: 16px;
+  padding: 32px 28px;
+  position: relative;
+}
+
+.vs-card.vs-us {
+  border-color: rgba(232, 93, 38, 0.3);
+  background: linear-gradient(180deg, rgba(232,93,38,0.04) 0%, var(--dark-card) 100%);
+}
+
+.vs-card.vs-us::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--orange), #FF8A50);
+  border-radius: 16px 16px 0 0;
+}
+
+.vs-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px; font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.vs-them .vs-label { color: var(--gray-400); }
+.vs-us .vs-label { color: var(--orange); }
+
+.vs-company-list {
+  font-size: 12px; color: var(--gray-500);
+  margin-bottom: 20px;
+}
+
+.vs-row {
+  display: flex; justify-content: space-between;
+  align-items: baseline; padding: 10px 0;
+  border-top: 1px solid var(--dark-border);
+  gap: 12px;
+}
+
+.vs-dim {
+  font-size: 12px; color: var(--gray-500);
+  white-space: nowrap; flex-shrink: 0;
+}
+
+.vs-val {
+  font-size: 13px; color: var(--gray-400);
+  text-align: right; line-height: 1.5;
+}
+
+.vs-val.highlight { color: var(--white); font-weight: 500; }
+
+.vs-verdict {
+  margin-top: 20px; padding: 10px 16px;
+  border-radius: 8px; text-align: center;
+  font-size: 14px; font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.vs-them .vs-verdict {
+  background: rgba(255,255,255,0.04);
+  color: var(--gray-500);
+}
+
+.vs-us .vs-verdict {
+  background: var(--orange-glow);
+  color: var(--orange);
+}
+
+.vs-divider {
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 16px;
+}
+
+.vs-divider span {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px; font-weight: 700;
+  color: var(--gray-500);
+  background: var(--dark);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--dark-border);
+}
+
+/* E2E Strip */
+.e2e-strip {
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.e2e-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 20px; font-weight: 700;
+  margin-bottom: 28px;
+}
+
+.e2e-flow {
+  display: flex; justify-content: center;
+  align-items: center; gap: 0;
+  margin-bottom: 24px; flex-wrap: wrap;
+}
+
+.e2e-node {
+  padding: 16px 24px;
+  text-align: center;
+}
+
+.e2e-node.active {
+  background: var(--orange-glow);
+  border: 1px solid rgba(232,93,38,0.3);
+  border-radius: 12px;
+}
+
+.e2e-icon { font-size: 24px; margin-bottom: 6px; }
+
+.e2e-icon-text {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px; font-weight: 700;
+  color: var(--orange); margin-bottom: 6px;
+}
+
+.e2e-text {
+  font-size: 13px; color: var(--gray-400);
+}
+
+.e2e-node.active .e2e-text { color: var(--orange); }
+
+.e2e-arrow {
+  font-size: 20px; color: var(--gray-500);
+  padding: 0 4px;
+}
+
+.e2e-desc {
+  font-size: 14px; font-weight: 300;
+  color: var(--gray-400); line-height: 1.8;
+  max-width: 650px; margin: 0 auto;
+}
+
+.e2e-desc strong { color: var(--white); font-weight: 500; }
+
+/* Algolux note */
+.algolux-note {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  border-left: 3px solid var(--teal);
+  border-radius: 0 12px 12px 0;
+  padding: 24px 28px;
+}
+
+.algolux-badge {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--teal); margin-bottom: 10px;
+}
+
+.algolux-note p {
+  font-size: 14px; font-weight: 300;
+  color: var(--gray-400); line-height: 1.7;
+}
+
+.algolux-note strong { color: var(--white); font-weight: 500; }
+
+@media (max-width: 768px) {
+  .section-diff { padding: 60px 20px; }
+  .vs-grid { grid-template-columns: 1fr; gap: 16px; }
+  .vs-divider { padding: 8px 0; }
+  .e2e-flow { flex-direction: column; gap: 8px; }
+  .e2e-arrow { transform: rotate(90deg); }
+}
+
+
+/* ===== BUSINESS MODEL ===== */
+.section-biz {
+  padding: 100px 40px;
+  position: relative;
+  background: var(--dark);
+}
+.section-biz::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--dark-border) 20%, var(--dark-border) 80%, transparent 100%);
+}
+.biz-container { max-width: 1100px; margin: 0 auto; }
+.biz-header { text-align: center; margin-bottom: 60px; }
+.biz-eyebrow {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px; font-weight: 500;
+  letter-spacing: 4px; text-transform: uppercase;
+  color: var(--orange); margin-bottom: 20px;
+}
+.biz-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 700; margin-bottom: 16px;
+}
+.biz-subtitle {
+  font-size: 16px; font-weight: 300;
+  color: var(--gray-400); line-height: 1.8;
+  max-width: 680px; margin: 0 auto;
+}
+.biz-streams {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 60px;
+}
+.biz-stream {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  border-radius: 16px;
+  padding: 32px 24px;
+  position: relative;
+  overflow: hidden;
+}
+.biz-stream:hover { border-color: rgba(255,255,255,0.08); }
+.biz-stream::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px; border-radius: 16px 16px 0 0;
+}
+.biz-stream:nth-child(1)::before { background: var(--orange); }
+.biz-stream:nth-child(2)::before { background: var(--teal); }
+.biz-stream:nth-child(3)::before { background: var(--gold); }
+.stream-icon {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 28px; font-weight: 700;
+  margin-bottom: 16px; display: block;
+}
+.biz-stream:nth-child(1) .stream-icon { color: var(--orange); }
+.biz-stream:nth-child(2) .stream-icon { color: var(--teal); }
+.biz-stream:nth-child(3) .stream-icon { color: var(--gold); }
+.stream-name { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+.stream-en {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px; color: var(--gray-500);
+  letter-spacing: 1px; margin-bottom: 16px;
+}
+.stream-desc {
+  font-size: 13px; font-weight: 300;
+  color: var(--gray-400); line-height: 1.7;
+  margin-bottom: 16px;
+}
+.stream-traits { display: flex; flex-direction: column; gap: 8px; }
+.stream-trait {
+  display: flex; justify-content: space-between;
+  padding: 6px 0;
+  border-top: 1px solid var(--dark-border);
+  font-size: 12px;
+}
+.stream-trait .trait-label { color: var(--gray-500); }
+.stream-trait .trait-value { color: var(--gray-300); font-weight: 500; text-align: right; }
+.biz-markets {
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+  border-radius: 16px;
+  padding: 40px;
+  margin-bottom: 40px;
+}
+.biz-markets-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 22px; font-weight: 700;
+  text-align: center; margin-bottom: 32px;
+}
+.market-grid {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr 1fr;
+  gap: 0;
+}
+.mg-header {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--gray-500);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--dark-border);
+}
+.mg-row-label {
+  font-size: 14px; font-weight: 600;
+  color: var(--white);
+  padding: 16px 16px;
+  border-bottom: 1px solid var(--dark-border);
+  display: flex; align-items: center;
+}
+.mg-cell {
+  padding: 16px;
+  border-bottom: 1px solid var(--dark-border);
+  border-left: 1px solid var(--dark-border);
+  font-size: 13px; color: var(--gray-400);
+  line-height: 1.6;
+}
+.mg-cell .active-dot {
+  display: inline-block; width: 8px; height: 8px;
+  border-radius: 50%; background: var(--orange);
+  margin-right: 6px; vertical-align: middle;
+}
+.mg-cell .future-dot {
+  display: inline-block; width: 8px; height: 8px;
+  border-radius: 50%; border: 1.5px solid var(--gray-500);
+  margin-right: 6px; vertical-align: middle;
+}
+.biz-bottom { text-align: center; }
+.biz-bottom p {
+  font-size: 15px; font-weight: 300;
+  color: var(--gray-400); line-height: 1.8;
+  max-width: 700px; margin: 0 auto;
+}
+.biz-bottom .bold { font-weight: 600; color: var(--white); }
+@media (max-width: 768px) {
+  .section-biz { padding: 60px 20px; }
+  .biz-streams { grid-template-columns: 1fr; }
+  .market-grid { grid-template-columns: 1fr; }
+  .mg-cell { border-left: none; }
+}
+
+/* ===== TARGET MARKETS ===== */
+.section-tam {
+  padding: 100px 40px;
+  position: relative;
+  background: var(--dark-surface);
+}
+.section-tam::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--dark-border) 20%, var(--dark-border) 80%, transparent 100%);
+}
+.tam-container { max-width: 1100px; margin: 0 auto; }
+.tam-header { text-align: center; margin-bottom: 60px; }
+.tam-eyebrow {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px; font-weight: 500;
+  letter-spacing: 4px; text-transform: uppercase;
+  color: var(--teal); margin-bottom: 20px;
+}
+.tam-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 700; margin-bottom: 16px;
+}
+.tam-subtitle {
+  font-size: 16px; font-weight: 300;
+  color: var(--gray-400); line-height: 1.8;
+  max-width: 700px; margin: 0 auto;
+}
+.tam-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.tam-card {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  border-radius: 16px; padding: 32px 28px;
+  position: relative; overflow: hidden;
+}
+.tam-card::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  border-radius: 16px 16px 0 0;
+}
+.tam-card:nth-child(1)::before { background: var(--orange); }
+.tam-card:nth-child(2)::before { background: var(--teal); }
+.tam-card:nth-child(3)::before { background: var(--gold); }
+.tam-card:nth-child(4)::before { background: linear-gradient(90deg, var(--orange), var(--teal)); }
+.tam-card-phase {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase;
+  display: inline-block; padding: 3px 10px;
+  border-radius: 4px; margin-bottom: 14px;
+}
+.tam-card:nth-child(1) .tam-card-phase,
+.tam-card:nth-child(2) .tam-card-phase,
+.tam-card:nth-child(3) .tam-card-phase {
+  color: var(--gray-300); background: rgba(255,255,255,0.06);
+}
+.tam-card:nth-child(4) .tam-card-phase {
+  color: var(--orange); background: var(--orange-glow);
+}
+.tam-card-name {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 22px; font-weight: 700; margin-bottom: 12px;
+}
+.tam-card-market { display: flex; gap: 20px; margin-bottom: 16px; flex-wrap: wrap; }
+.tam-metric { display: flex; flex-direction: column; }
+.tam-metric-val {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px; font-weight: 700; color: var(--white);
+}
+.tam-metric-label { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
+.tam-metric-src { font-size: 10px; color: var(--gray-500); font-style: italic; }
+.tam-players-title {
+  font-size: 12px; color: var(--gray-500);
+  letter-spacing: 1px; text-transform: uppercase;
+  margin: 16px 0 8px; padding-top: 12px;
+  border-top: 1px solid var(--dark-border);
+}
+.tam-players { display: flex; flex-wrap: wrap; gap: 6px; }
+.tam-player {
+  font-size: 12px; padding: 3px 10px;
+  border-radius: 20px; border: 1px solid var(--dark-border);
+  color: var(--gray-400); white-space: nowrap;
+}
+.tam-player.client {
+  border-color: rgba(232,93,38,0.3);
+  color: var(--orange); background: rgba(232,93,38,0.06);
+}
+.tam-v1-role {
+  font-size: 13px; font-weight: 300;
+  color: var(--gray-400); line-height: 1.6;
+  margin-top: 14px; padding-top: 12px;
+  border-top: 1px solid var(--dark-border);
+}
+.tam-v1-role strong { color: var(--white); font-weight: 500; }
+@media (max-width: 768px) {
+  .section-tam { padding: 60px 20px; }
+  .tam-cards { grid-template-columns: 1fr; }
+}
+
+/* ===== TEAM ===== */
+.section-team {
+  padding: 100px 40px;
+  position: relative;
+  background: var(--dark);
+}
+.section-team::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--dark-border) 20%, var(--dark-border) 80%, transparent 100%);
+}
+.team-container { max-width: 1100px; margin: 0 auto; }
+.team-header { text-align: center; margin-bottom: 60px; }
+.team-eyebrow {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px; font-weight: 500;
+  letter-spacing: 4px; text-transform: uppercase;
+  color: var(--orange); margin-bottom: 20px;
+}
+.team-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 700; margin-bottom: 16px;
+}
+.team-subtitle {
+  font-size: 16px; font-weight: 300;
+  color: var(--gray-400); line-height: 1.8;
+  max-width: 700px; margin: 0 auto;
+}
+.founder-card {
+  background: var(--dark-card);
+  border: 1px solid rgba(232,93,38,0.3);
+  border-radius: 16px; padding: 40px;
+  margin-bottom: 32px; position: relative; overflow: hidden;
+}
+.founder-card::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--orange), #FF8A50);
+  border-radius: 16px 16px 0 0;
+}
+.founder-top { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; }
+.founder-avatar {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: var(--orange-glow); border: 2px solid var(--orange);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 24px; font-weight: 700; color: var(--orange); flex-shrink: 0;
+}
+.founder-role {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--orange); margin-bottom: 4px;
+}
+.founder-name-placeholder { font-size: 22px; font-weight: 700; color: var(--white); }
+.founder-exp { font-size: 13px; color: var(--gray-400); margin-top: 2px; }
+.founder-skills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.founder-skill {
+  font-size: 12px; padding: 5px 14px; border-radius: 20px;
+  border: 1px solid rgba(232,93,38,0.3);
+  color: var(--orange); background: rgba(232,93,38,0.06);
+}
+.founder-desc {
+  font-size: 14px; font-weight: 300;
+  color: var(--gray-400); line-height: 1.8;
+}
+.founder-desc strong { color: var(--white); font-weight: 500; }
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px; margin-bottom: 40px;
+}
+.team-member {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  border-radius: 12px; padding: 24px 20px;
+}
+.member-origin {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px; font-weight: 500;
+  letter-spacing: 1px; color: var(--teal); margin-bottom: 8px;
+}
+.member-role { font-size: 15px; font-weight: 600; color: var(--white); margin-bottom: 4px; }
+.member-exp { font-size: 12px; color: var(--gray-500); margin-bottom: 10px; }
+.member-desc { font-size: 12px; color: var(--gray-400); line-height: 1.6; }
+.team-summary {
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+  border-radius: 16px; padding: 32px 40px;
+  display: flex; justify-content: space-around; flex-wrap: wrap; gap: 24px;
+}
+.team-stat { text-align: center; }
+.team-stat-val {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 32px; font-weight: 700; color: var(--white);
+}
+.team-stat-label { font-size: 13px; color: var(--gray-500); margin-top: 4px; }
+@media (max-width: 768px) {
+  .section-team { padding: 60px 20px; }
+  .team-grid { grid-template-columns: 1fr; }
+  .team-summary { flex-direction: column; align-items: center; }
+}
+
+
+/* ===== CLOSING - AI NATIVE ===== */
+.section-closing {
+  min-height: 80vh;
+  padding: 100px 40px;
+  position: relative;
+  background: var(--dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.section-closing::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--dark-border) 20%, var(--dark-border) 80%, transparent 100%);
+}
+.closing-container {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+.closing-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--orange);
+  background: var(--orange-glow);
+  border: 1px solid rgba(232,93,38,0.3);
+  padding: 6px 18px;
+  border-radius: 100px;
+  margin-bottom: 36px;
+}
+.closing-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: clamp(26px, 4vw, 40px);
+  font-weight: 700;
+  line-height: 1.5;
+  margin-bottom: 32px;
+}
+.closing-title .em {
+  background: linear-gradient(135deg, var(--orange) 0%, #FF8A50 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.closing-meta {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--gray-500);
+  border: 1px solid var(--dark-border);
+  border-radius: 12px;
+  padding: 20px 28px;
+  margin-bottom: 40px;
+  background: var(--dark-card);
+  text-align: left;
+  line-height: 2;
+}
+.closing-meta .meta-label {
+  color: var(--gray-400);
+  font-weight: 500;
+}
+.closing-desc {
+  font-size: 16px;
+  font-weight: 300;
+  color: var(--gray-400);
+  line-height: 1.9;
+  margin-bottom: 40px;
+}
+.closing-desc strong {
+  color: var(--white);
+  font-weight: 500;
+}
+.closing-10x {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(48px, 8vw, 80px);
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--orange) 0%, var(--teal) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 12px;
+}
+.closing-10x-label {
+  font-size: 16px;
+  color: var(--gray-400);
+  margin-bottom: 50px;
+}
+.closing-footer {
+  padding-top: 40px;
+  border-top: 1px solid var(--dark-border);
+}
+.closing-brand {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--orange) 0%, #FF8A50 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+.closing-slogan {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 18px;
+  color: var(--gray-400);
+  font-weight: 400;
+}
+@media (max-width: 768px) {
+  .section-closing { padding: 60px 20px; }
+}
+
+/* ===== Animations ===== */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: rotate(45deg) translateY(0); }
+  50% { transform: rotate(45deg) translateY(6px); }
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .section-hero { padding: 40px 20px 60px; }
+  .section-battlefields { padding: 60px 20px; }
+  
+  .timeline-track {
+    flex-direction: column;
+    gap: 24px;
+  }
+  .timeline-track::before {
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 2px;
+    height: 100%;
+    transform: translateX(-50%);
+    background: linear-gradient(180deg, var(--gray-500) 0%, var(--orange) 100%);
+  }
+  .timeline-node {
+    flex-direction: row;
+    gap: 16px;
+    padding: 8px 0;
+  }
+  .node-dot { order: 0; margin-bottom: 0; }
+  .node-year { order: 0; }
+  
+  .bf-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .strategy-timeline {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .strategy-phase:not(:last-child)::after {
+    content: '↓';
+    right: 50%;
+    top: auto;
+    bottom: -12px;
+    transform: translateX(50%);
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== COVER PAGE ===== -->
+<section class="section-cover">
+  <div class="cover-bg">
+    <img src="https://cdn.voronoiapp.com/public/images/00a58424-b477-4e2a-bd95-8f12b4ec9e26.webp" 
+         alt="The Current Generation of Humanoid Robots 2025" />
+  </div>
+  <div class="cover-content">
+    <div class="cover-brand">V1</div>
+    <h1 class="cover-tagline-cn">机器人的眼睛与视觉皮层</h1>
+    <p class="cover-tagline-en">The Eyes & Visual System for Robots</p>
+    <div class="cover-keywords">
+      <span class="cover-kw">Physical AI</span>
+      <span class="cover-kw">视觉接入 ASIC</span>
+      <span class="cover-kw">数据基础设施</span>
+    </div>
+  </div>
+  <div class="cover-scroll">
+    <span>Scroll</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+
+<!-- ===== SECTION 1: AI EVOLUTION ===== -->
+<section class="section-hero">
+  <div class="hero-content">
+    
+    <div class="hero-eyebrow">The Next Frontier of AI</div>
+    
+    <h1 class="hero-title">
+      AI正在从数字世界<br>走进<span class="highlight">物理世界</span>
+    </h1>
+    
+    <p class="hero-subtitle">
+      每一次AI浪潮都重新定义了基础设施。<br>
+      当AI开始感知、推理、并在真实世界中行动——<br>
+      它需要全新的「眼睛」。
+    </p>
+
+    <!-- Jensen Huang CES 2025 AI Evolution Image -->
+    <div class="ai-evolution-image">
+      <img src="https://cdn-uploads.huggingface.co/production/uploads/64838b28c235ef76b63e4999/4nUc0i4XSect3zRKfoJmw.png" 
+           alt="Jensen Huang CES 2025 - AI Evolution: Perception AI → Generative AI → Agentic AI → Physical AI" />
+    </div>
+
+    <div class="hero-source">
+      NVIDIA CEO Jensen Huang · CES 2025 Keynote
+    </div>
+
+    <div class="hero-cta">
+      <p class="question">
+        Physical AI 要在真实世界中行动，<br>
+        首先需要<span class="em">「看见」真实世界</span>。
+      </p>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+
+<!-- ===== SECTION 2: TWO BATTLEFIELDS ===== -->
+<section class="section-battlefields">
+  <div class="bf-container">
+    
+    <div class="bf-header">
+      <div class="bf-eyebrow">Two Battlefields</div>
+      <h2 class="bf-title">物理 AI 的两大主战场</h2>
+      <p class="bf-subtitle">
+        自动驾驶已被验证，人形机器人正在起步。<br>
+        两条赛道共享同一个底层需求——<strong style="color:var(--white)">机器视觉</strong>。
+      </p>
+    </div>
+
+    <div class="bf-cards">
+      
+      <!-- Card 1: Autonomous Driving -->
+      <div class="bf-card verified">
+        <svg class="card-icon-svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M5 17a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1l2-3h8l2 3h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2M5 17l-1 2m15-2 1 2"/><circle cx="7.5" cy="13" r="1.5"/><circle cx="16.5" cy="13" r="1.5"/></svg>
+        <span class="card-status">已验证</span>
+        <h3 class="card-title">自动驾驶</h3>
+        <p class="card-desc">
+          「四个轮子的机器人」——Tesla FSD、Waymo已在全球数百万公里道路上验证了端到端AI方案的可行性。技术路线已经明确。
+        </p>
+        <div class="card-stats">
+          <div class="stat-row">
+            <span class="stat-label">全球ADAS/AD市场 2030</span>
+            <span class="stat-value">$770亿+</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">L2+渗透率 2025</span>
+            <span class="stat-value">>50%</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">技术成熟度</span>
+            <span class="stat-value" style="color:var(--gray-300)">●●●●○</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Humanoid Robots -->
+      <div class="bf-card rising">
+        <svg class="card-icon-svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="4" width="10" height="7" rx="2"/><line x1="12" y1="11" x2="12" y2="14"/><rect x="5" y="14" width="14" height="7" rx="2"/><circle cx="9.5" cy="7.5" r="1"/><circle cx="14.5" cy="7.5" r="1"/><line x1="5" y1="17" x2="3" y2="19"/><line x1="19" y1="17" x2="21" y2="19"/></svg>
+        <h3 class="card-title">人形机器人</h3>
+        <span class="card-status">2026 起点</span>
+        <p class="card-desc">
+          「两条腿的机器人」——2026年是商业化元年，Tesla Optimus转产、中国厂商密集出货。10-20年成熟期内将改写制造业与服务业格局。
+        </p>
+        <div class="card-stats">
+          <div class="stat-row">
+            <span class="stat-label">2026年全球出货</span>
+            <span class="stat-value">~9万台<span class="stat-source">BofA</span></span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">2030年全球出货</span>
+            <span class="stat-value">120万台<span class="stat-source">BofA</span></span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">2050年市场规模</span>
+            <span class="stat-value">$5万亿<span class="stat-source">Morgan Stanley</span></span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">CAGR (2025-2030)</span>
+            <span class="stat-value" style="color:var(--orange)">86%</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- V1 Strategy -->
+    <div class="bf-positioning">
+      <h3 class="pos-title">
+        <span class="v1">V1</span> 的节奏：确定性 + 爆发性
+      </h3>
+
+      <div class="strategy-timeline">
+        
+        <div class="strategy-phase">
+          <div class="phase-period">短期 2026—2028</div>
+          <div class="phase-label">现金流</div>
+          <div class="phase-detail">借助成熟市场获得投资回报</div>
+          <div class="phase-markets">
+            <span class="phase-tag">自动驾驶</span>
+            <span class="phase-tag">工业视觉</span>
+            <span class="phase-tag">安防监控</span>
+          </div>
+        </div>
+
+        <div class="strategy-phase">
+          <div class="phase-period">中期 2028—2032</div>
+          <div class="phase-label">规模化</div>
+          <div class="phase-detail">随人形机器人产业起量</div>
+          <div class="phase-markets">
+            <span class="phase-tag">人形机器人</span>
+            <span class="phase-tag">无人机</span>
+            <span class="phase-tag">服务机器人</span>
+          </div>
+        </div>
+
+        <div class="strategy-phase">
+          <div class="phase-period">长期 2032+</div>
+          <div class="phase-label">平台化</div>
+          <div class="phase-detail">成为物理AI视觉基础设施标准</div>
+          <div class="phase-markets">
+            <span class="phase-tag">通用具身智能</span>
+            <span class="phase-tag">万物视觉</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="bf-bottom">
+      <p>
+        V1 不是赌一个远期概念。<br>
+        短期有<span class="bold">成熟市场兜底</span>，中长期随<span class="bold">人形机器人赛道一起爆发</span>——<br>
+        这是一个「<span class="bold" style="color:var(--orange)">确定性 + 爆发性</span>」的组合。
+      </p>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ===== TRUST BANNER ===== -->
+<section class="section-trust">
+  <div class="trust-container">
+
+    <div class="trust-badge">
+      <span class="dot"></span>
+      已验证 · 非概念
+    </div>
+
+    <h2 class="trust-headline">
+      V1 核心技术已在<span class="chip-highlight">国内领先智驾芯片公司的<br>新一代芯片</span> 中完成设计，即将流片
+    </h2>
+
+    <div class="trust-timeline">
+      <div class="trust-milestone">
+        <div class="milestone-dot"></div>
+        <div class="milestone-year">已完成</div>
+        <div class="milestone-label">芯片设计<br>& 即将流片</div>
+      </div>
+      <div class="trust-milestone">
+        <div class="milestone-dot"></div>
+        <div class="milestone-year">2027 H1</div>
+        <div class="milestone-label">芯片回片<br>& 验证</div>
+      </div>
+      <div class="trust-milestone">
+        <div class="milestone-dot"></div>
+        <div class="milestone-year">2027 H2</div>
+        <div class="milestone-label">量产 & 全面<br>验证优势</div>
+      </div>
+    </div>
+
+    <p class="trust-footnote">
+      2027年下半年量产后，将在真实车辆中全面验证 V1 方案的<strong>精度、延迟和成本优势</strong>。<br>
+      这不是实验室原型——是已经进入芯片设计流程的成熟方案。
+    </p>
+
+  </div>
+</section>
+
+
+<!-- ===== SECTION: COMPETITIVE DIFFERENTIATION ===== -->
+<section class="section-diff">
+  <div class="diff-container">
+
+    <div class="diff-header">
+      <div class="diff-eyebrow">Why V1 is Different</div>
+      <h2 class="diff-title">V1 不是「AI ISP」</h2>
+      <p class="diff-subtitle">
+        市面上的 AI ISP 只是在传统流水线上叠加了 AI 模块，优化目标仍然是人眼画质。<br>
+        V1 是完全不同的物种——面向机器视觉的端到端可学习系统。
+      </p>
+    </div>
+
+    <!-- VS Comparison -->
+    <div class="vs-grid">
+
+      <div class="vs-card vs-them">
+        <div class="vs-label">市面上的「AI ISP」</div>
+        <div class="vs-company-list">VeriSilicon · Ambarella · Mobileye · 富瀚微 …</div>
+
+        <div class="vs-row">
+          <span class="vs-dim">优化目标</span>
+          <span class="vs-val">人眼画质 (PSNR/SSIM)</span>
+        </div>
+        <div class="vs-row">
+          <span class="vs-dim">架构</span>
+          <span class="vs-val">传统 ISP + AI 降噪/增强模块</span>
+        </div>
+        <div class="vs-row">
+          <span class="vs-dim">输出</span>
+          <span class="vs-val">YUV / RGB 图像（给人看）</span>
+        </div>
+        <div class="vs-row">
+          <span class="vs-dim">与感知网络</span>
+          <span class="vs-val">割裂，各自独立优化</span>
+        </div>
+        <div class="vs-row">
+          <span class="vs-dim">训练方式</span>
+          <span class="vs-val">手工调参，不可微</span>
+        </div>
+        <div class="vs-row">
+          <span class="vs-dim">域适配</span>
+          <span class="vs-val">换传感器需重新调参数月</span>
+        </div>
+
+        <div class="vs-verdict">在 ISP 上「加」AI</div>
+      </div>
+
+      <div class="vs-divider">
+        <span>VS</span>
+      </div>
+
+      <div class="vs-card vs-us">
+        <div class="vs-label">V1</div>
+        <div class="vs-company-list">端到端可学习视觉系统</div>
+
+        <div class="vs-row">
+          <span class="vs-dim">优化目标</span>
+          <span class="vs-val highlight">感知精度 (mAP/mIOU)</span>
+        </div>
+        <div class="vs-row">
+          <span class="vs-dim">架构</span>
+          <span class="vs-val highlight">全神经网络 pipeline，可微分</span>
+        </div>
+        <div class="vs-row">
+          <span class="vs-dim">输出</span>
+          <span class="vs-val highlight">Tensor 特征（给神经网络看）</span>
+        </div>
+        <div class="vs-row">
+          <span class="vs-dim">与感知网络</span>
+          <span class="vs-val highlight">联合训练，端到端优化</span>
+        </div>
+        <div class="vs-row">
+          <span class="vs-dim">训练方式</span>
+          <span class="vs-val highlight">梯度反传，感知 Loss 驱动</span>
+        </div>
+        <div class="vs-row">
+          <span class="vs-dim">域适配</span>
+          <span class="vs-val highlight">自动梯度适配，无需手工调参</span>
+        </div>
+
+        <div class="vs-verdict">用 AI「替代」ISP</div>
+      </div>
+
+    </div>
+
+    <!-- End-to-end pipeline strip -->
+    <div class="e2e-strip">
+      <div class="e2e-title">V1 的终极目标：光子进，控制出</div>
+      <div class="e2e-flow">
+        <div class="e2e-node">
+          <div class="e2e-icon">☀️ → 📷</div>
+          <div class="e2e-text">光子</div>
+        </div>
+        <div class="e2e-arrow">→</div>
+        <div class="e2e-node active">
+          <div class="e2e-icon-text">V1</div>
+          <div class="e2e-text">视觉皮层</div>
+        </div>
+        <div class="e2e-arrow">→</div>
+        <div class="e2e-node">
+          <div class="e2e-icon">🧠</div>
+          <div class="e2e-text">感知 & 决策</div>
+        </div>
+        <div class="e2e-arrow">→</div>
+        <div class="e2e-node">
+          <div class="e2e-icon">⚡</div>
+          <div class="e2e-text">控制</div>
+        </div>
+      </div>
+      <p class="e2e-desc">
+        从传感器原始光子信号到机器人控制指令，全链路神经网络化。<br>
+        V1 与后端感知任务<strong>联合学习、联合优化</strong>——不是独立的前处理模块，而是端到端系统的有机组成部分。
+      </p>
+    </div>
+
+    <!-- Algolux validation -->
+    <div class="algolux-note">
+      <div class="algolux-badge">对标验证</div>
+      <p>
+        全球唯一做过类似技术路线的公司 <strong>Algolux</strong>（加拿大），累计融资 $31.8M，
+        2023年被戴姆勒卡车子公司溢价收购——技术路线已被市场验证。
+        但 Algolux 是纯软件方案，没有芯片硬化能力。<strong>V1 兼具算法和芯片。</strong>
+      </p>
+    </div>
+
+  </div>
+</section>
+
+
+
+<!-- ===== SECTION: BUSINESS MODEL ===== -->
+<section class="section-biz">
+  <div class="biz-container">
+
+    <div class="biz-header">
+      <div class="biz-eyebrow">Business Model</div>
+      <h2 class="biz-title">三条收入线，覆盖全生命周期</h2>
+      <p class="biz-subtitle">
+        从 IP 授权到视觉接入芯片，再到软件与数据服务——<br>
+        V1 构建的是一个从一次性收入到持续性收入的完整商业闭环。
+      </p>
+    </div>
+
+    <!-- Three revenue streams -->
+    <div class="biz-streams">
+
+      <div class="biz-stream">
+        <span class="stream-icon">IP</span>
+        <div class="stream-name">IP 授权</div>
+        <div class="stream-en">IP Licensing</div>
+        <p class="stream-desc">
+          将 V1 视觉处理 pipeline 作为 IP 核授权给 SoC 厂商集成，
+          类似 ARM / VeriSilicon 模式，快速触达多家芯片平台。
+        </p>
+        <div class="stream-traits">
+          <div class="stream-trait">
+            <span class="trait-label">收入模式</span>
+            <span class="trait-value">授权费 + 版税</span>
+          </div>
+          <div class="stream-trait">
+            <span class="trait-label">毛利率</span>
+            <span class="trait-value">~90%+</span>
+          </div>
+          <div class="stream-trait">
+            <span class="trait-label">启动速度</span>
+            <span class="trait-value">最快</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="biz-stream">
+        <span class="stream-icon">芯</span>
+        <div class="stream-name">视觉接入芯片</div>
+        <div class="stream-en">Vision ASIC</div>
+        <p class="stream-desc">
+          自研轻量级视觉接入 ASIC——含 MIPI RX/TX、ISP 等视觉处理模块，无 DDR，可选 RISC-V 内核。类似相机模组中集成的 ISP 芯片，成本极低，可反复投片快速迭代。
+        </p>
+        <div class="stream-traits">
+          <div class="stream-trait">
+            <span class="trait-label">收入模式</span>
+            <span class="trait-value">芯片一次性销售</span>
+          </div>
+          <div class="stream-trait">
+            <span class="trait-label">架构</span>
+            <span class="trait-value">专用视觉前端，非通用 SoC</span>
+          </div>
+          <div class="stream-trait">
+            <span class="trait-label">成本优势</span>
+            <span class="trait-value">极低 BOM，可反复投片</span>
+          </div>
+          <div class="stream-trait">
+            <span class="trait-label">壁垒</span>
+            <span class="trait-value">ASIC 硬化 + 闭源模型</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="biz-stream">
+        <span class="stream-icon">软</span>
+        <div class="stream-name">软件 & 数据服务</div>
+        <div class="stream-en">Software & Data Services</div>
+        <p class="stream-desc">
+          覆盖视觉数据全生命周期的工具链与服务，
+          按项目或按量持续付费，高毛利，远期价值远超芯片。
+        </p>
+        <div class="stream-traits">
+          <div class="stream-trait">
+            <span class="trait-label">Sensor 调试</span>
+            <span class="trait-value">快速适配各类传感器</span>
+          </div>
+          <div class="stream-trait">
+            <span class="trait-label">高精数据采集</span>
+            <span class="trait-value">RAW 12bit 全链路采集方案</span>
+          </div>
+          <div class="stream-trait">
+            <span class="trait-label">压缩损失恢复</span>
+            <span class="trait-value">AI 驱动的信号恢复</span>
+          </div>
+          <div class="stream-trait">
+            <span class="trait-label">训练加速</span>
+            <span class="trait-value">端到端联合训练工具</span>
+          </div>
+          <div class="stream-trait">
+            <span class="trait-label">YUV 转 RAW</span>
+            <span class="trait-value">历史数据资产迁移</span>
+          </div>
+          <div class="stream-trait">
+            <span class="trait-label">收入模式</span>
+            <span class="trait-value">订阅 / 按量 / 按项目</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Market × Timeline grid -->
+    <div class="biz-markets">
+      <h3 class="biz-markets-title">市场节奏：成熟领域先行，机器人中长期爆发</h3>
+
+      <div class="market-grid">
+        <div class="mg-header"></div>
+        <div class="mg-header">IP 授权</div>
+        <div class="mg-header">视觉 ASIC</div>
+        <div class="mg-header">软件 & 数据服务</div>
+
+        <div class="mg-row-label">自动驾驶</div>
+        <div class="mg-cell"><span class="active-dot"></span>现有芯片平台替换升级</div>
+        <div class="mg-cell"><span class="active-dot"></span>ADAS 视觉前端接入</div>
+        <div class="mg-cell"><span class="active-dot"></span>Sensor 调试 / 高精数据采集 / 训练加速 / 压缩损失恢复 / YUV 转 RAW</div>
+
+        <div class="mg-row-label">工业机器人</div>
+        <div class="mg-cell"><span class="active-dot"></span>工业视觉 SoC 集成</div>
+        <div class="mg-cell"><span class="active-dot"></span>工业视觉接入芯片</div>
+        <div class="mg-cell"><span class="future-dot"></span>从自动驾驶迁移复用</div>
+
+        <div class="mg-row-label">安防监控</div>
+        <div class="mg-cell"><span class="active-dot"></span>安防 ISP 芯片替换</div>
+        <div class="mg-cell"><span class="future-dot"></span>安防视觉接入芯片</div>
+        <div class="mg-cell"><span class="future-dot"></span>从自动驾驶迁移复用</div>
+
+        <div class="mg-row-label" style="color:var(--orange)">人形机器人</div>
+        <div class="mg-cell"><span class="future-dot"></span>机器人 SoC 集成</div>
+        <div class="mg-cell"><span class="future-dot"></span>多目视觉接入 ASIC</div>
+        <div class="mg-cell"><span class="future-dot"></span>全栈视觉数据工具链</div>
+      </div>
+    </div>
+
+    <div class="biz-bottom">
+      <p>
+        短期通过 <span class="bold">IP 授权</span> 和 <span class="bold">成熟市场视觉接入芯片替换</span> 快速获得收入，<br>
+        中长期随机器人产业起量，<span class="bold">软件与数据服务</span> 成为核心利润引擎——<br>
+        一次性收入 + 持续性收入的 <span class="bold" style="color:var(--orange)">双轮驱动</span>。
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== SECTION: TARGET MARKETS ===== -->
+<section class="section-tam">
+  <div class="tam-container">
+
+    <div class="tam-header">
+      <div class="tam-eyebrow">Target Markets</div>
+      <h2 class="tam-title">四大目标市场与潜在客户</h2>
+      <p class="tam-subtitle">
+        V1 的视觉接入方案可服务于所有需要机器视觉的领域。<br>
+        短期聚焦成熟市场，中长期随机器人产业扩展。
+      </p>
+    </div>
+
+    <div class="tam-cards">
+
+      <div class="tam-card">
+        <div class="tam-card-phase">短期 · 核心市场</div>
+        <div class="tam-card-name">自动驾驶 / ADAS</div>
+        <div class="tam-card-market">
+          <div class="tam-metric">
+            <span class="tam-metric-val">$721亿</span>
+            <span class="tam-metric-label">ADAS 市场 2025</span>
+            <span class="tam-metric-src">FMI</span>
+          </div>
+          <div class="tam-metric">
+            <span class="tam-metric-val">$2,282亿</span>
+            <span class="tam-metric-label">ADAS 市场 2035</span>
+            <span class="tam-metric-src">FMI</span>
+          </div>
+        </div>
+        <div class="tam-players-title">国内智驾 SoC 厂商（IP 授权客户）</div>
+        <div class="tam-players">
+          <span class="tam-player client">国内智驾芯片龙头</span>
+          <span class="tam-player client">黑芝麻智能</span>
+          <span class="tam-player client">华为</span>
+          <span class="tam-player client">芯擎科技</span>
+          <span class="tam-player client">爱芯元智</span>
+        </div>
+        <div class="tam-players-title">车企自研芯片（IP 授权客户）</div>
+        <div class="tam-players">
+          <span class="tam-player client">蔚来</span>
+          <span class="tam-player client">吉利</span>
+          <span class="tam-player client">比亚迪</span>
+          <span class="tam-player client">理想</span>
+        </div>
+        <div class="tam-players-title">Tier-1 & 模组厂（ASIC 客户）</div>
+        <div class="tam-players">
+          <span class="tam-player client">舜宇光学</span>
+          <span class="tam-player client">欧菲光</span>
+          <span class="tam-player client">联创电子</span>
+          <span class="tam-player client">德赛西威</span>
+          <span class="tam-player client">经纬恒润</span>
+        </div>
+        <div class="tam-v1-role">
+          <strong>V1 切入点：</strong>为智驾 SoC 提供 IP 授权（替换传统 ISP IP），或向模组厂直接供应视觉接入 ASIC。已有技术验证，2027H2 量产。
+        </div>
+      </div>
+
+      <div class="tam-card">
+        <div class="tam-card-phase">短期 · 存量替换</div>
+        <div class="tam-card-name">工业机器视觉</div>
+        <div class="tam-card-market">
+          <div class="tam-metric">
+            <span class="tam-metric-val">$158亿</span>
+            <span class="tam-metric-label">机器视觉 2025</span>
+            <span class="tam-metric-src">MarketsandMarkets</span>
+          </div>
+          <div class="tam-metric">
+            <span class="tam-metric-val">$236亿</span>
+            <span class="tam-metric-label">机器视觉 2030</span>
+            <span class="tam-metric-src">MarketsandMarkets</span>
+          </div>
+        </div>
+        <div class="tam-players-title">工业相机 & 视觉系统厂商（ASIC / IP 客户）</div>
+        <div class="tam-players">
+          <span class="tam-player client">海康机器人</span>
+          <span class="tam-player client">华睿科技（大华）</span>
+          <span class="tam-player client">大恒图像</span>
+          <span class="tam-player client">凌云光</span>
+          <span class="tam-player client">奥普特</span>
+          <span class="tam-player client">矩子科技</span>
+        </div>
+        <div class="tam-players-title">ISP 芯片厂商（V1 替换目标）</div>
+        <div class="tam-players">
+          <span class="tam-player client">富瀚微</span>
+          <span class="tam-player client">北京君正</span>
+          <span class="tam-player client">星宸科技</span>
+        </div>
+        <div class="tam-players-title">工业机器人 & AGV（终端客户）</div>
+        <div class="tam-players">
+          <span class="tam-player client">埃斯顿</span>
+          <span class="tam-player client">汇川技术</span>
+          <span class="tam-player client">新松机器人</span>
+          <span class="tam-player client">极智嘉</span>
+        </div>
+        <div class="tam-v1-role">
+          <strong>V1 切入点：</strong>为工业相机/模组厂提供 AI 视觉接入 ASIC，替换富瀚微等传统 ISP 芯片，用于质检、AGV、分拣、焊接引导等场景。
+        </div>
+      </div>
+
+      <div class="tam-card">
+        <div class="tam-card-phase">短期 · 存量替换</div>
+        <div class="tam-card-name">安防监控</div>
+        <div class="tam-card-market">
+          <div class="tam-metric">
+            <span class="tam-metric-val">$673亿</span>
+            <span class="tam-metric-label">视频监控 2025</span>
+            <span class="tam-metric-src">MarketsandMarkets</span>
+          </div>
+          <div class="tam-metric">
+            <span class="tam-metric-val">$1,071亿</span>
+            <span class="tam-metric-label">视频监控 2030</span>
+            <span class="tam-metric-src">MarketsandMarkets</span>
+          </div>
+        </div>
+        <div class="tam-players-title">安防设备厂商（ASIC / IP 客户）</div>
+        <div class="tam-players">
+          <span class="tam-player client">海康威视</span>
+          <span class="tam-player client">大华股份</span>
+          <span class="tam-player client">宇视科技</span>
+          <span class="tam-player client">天地伟业</span>
+        </div>
+        <div class="tam-players-title">安防 ISP/SoC 芯片（V1 替换目标）</div>
+        <div class="tam-players">
+          <span class="tam-player client">富瀚微</span>
+          <span class="tam-player client">星宸科技</span>
+          <span class="tam-player client">北京君正</span>
+          <span class="tam-player client">为旌科技</span>
+        </div>
+        <div class="tam-players-title">Sensor 厂商（合作伙伴）</div>
+        <div class="tam-players">
+          <span class="tam-player client">思特威</span>
+          <span class="tam-player client">豪威科技</span>
+          <span class="tam-player client">Sony</span>
+        </div>
+        <div class="tam-v1-role">
+          <strong>V1 切入点：</strong>替换安防相机中富瀚微/星宸等传统 ISP 芯片，面向边缘 AI 分析场景提供更高精度的视觉前端。安防市场体量大、ISP 替换成本低。
+        </div>
+      </div>
+
+      <div class="tam-card">
+        <div class="tam-card-phase">中长期 · 爆发市场</div>
+        <div class="tam-card-name">人形机器人</div>
+        <div class="tam-card-market">
+          <div class="tam-metric">
+            <span class="tam-metric-val">$29亿</span>
+            <span class="tam-metric-label">人形机器人 2025</span>
+            <span class="tam-metric-src">MarketsandMarkets</span>
+          </div>
+          <div class="tam-metric">
+            <span class="tam-metric-val">$153亿</span>
+            <span class="tam-metric-label">人形机器人 2030</span>
+            <span class="tam-metric-src">MarketsandMarkets</span>
+          </div>
+          <div class="tam-metric">
+            <span class="tam-metric-val">86%</span>
+            <span class="tam-metric-label">CAGR</span>
+            <span class="tam-metric-src">BofA</span>
+          </div>
+        </div>
+        <div class="tam-players-title">人形机器人厂商（终端客户）</div>
+        <div class="tam-players">
+          <span class="tam-player client">智元机器人</span>
+          <span class="tam-player client">优必选</span>
+          <span class="tam-player client">宇树科技</span>
+          <span class="tam-player client">傅利叶</span>
+          <span class="tam-player client">星动纪元</span>
+          <span class="tam-player client">银河通用</span>
+          <span class="tam-player client">小鹏 IRON</span>
+        </div>
+        <div class="tam-players-title">机器人 Tier-1 & 视觉模组（ASIC 客户）</div>
+        <div class="tam-players">
+          <span class="tam-player client">地瓜机器人</span>
+          <span class="tam-player client">速腾聚创</span>
+          <span class="tam-player client">奥比中光</span>
+          <span class="tam-player client">镭神智能</span>
+        </div>
+        <div class="tam-v1-role">
+          <strong>V1 切入点：</strong>为机器人 Tier-1 和终端厂商提供多目视觉接入 ASIC（立体视觉+手眼+环境感知），每台机器人 4-12 个视觉模组，单机价值量高。
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== SECTION: TEAM ===== -->
+<section class="section-team">
+  <div class="team-container">
+
+    <div class="team-header">
+      <div class="team-eyebrow">Core Team</div>
+      <h2 class="team-title">核心团队</h2>
+      <p class="team-subtitle">
+        团队来自已验证技术项目的原班人马，融合了视觉信号处理、AI 算法与芯片架构三大领域的深厚积累。<br>
+        全员深圳。
+      </p>
+    </div>
+
+    <!-- Founder -->
+    <div class="founder-card">
+      <div class="founder-top">
+        <div class="founder-avatar">F</div>
+        <div class="founder-info">
+          <div class="founder-role">Founder & CEO</div>
+          <div class="founder-name-placeholder">创始人</div>
+          <div class="founder-exp">20 年经验 · 前海思资深架构师</div>
+        </div>
+      </div>
+      <div class="founder-skills">
+        <span class="founder-skill">ISP 架构</span>
+        <span class="founder-skill">Display</span>
+        <span class="founder-skill">Codec</span>
+        <span class="founder-skill">AI 算法</span>
+        <span class="founder-skill">芯片架构设计</span>
+        <span class="founder-skill">全栈跨域</span>
+      </div>
+      <div class="founder-desc">
+        精通从<strong>图像信号处理、显示、编解码、AI 算法到芯片架构设计</strong>的全链路技术。
+        在国内头部芯片公司主导了多代视觉处理芯片的架构定义，
+        是 V1 技术原型项目的发起者和总架构师。
+        <strong>横跨 ISP 领域专家与 AI 算法工程师两个世界</strong>——这正是 V1 团队的核心竞争力来源。
+      </div>
+    </div>
+
+    <!-- Core members -->
+    <div class="team-grid">
+
+      <div class="team-member">
+        <div class="member-origin">前海思</div>
+        <div class="member-role">视觉架构师</div>
+        <div class="member-exp">15+ 年经验</div>
+        <div class="member-desc">安防视觉芯片资深架构师，主导过多款量产 ISP 芯片架构设计</div>
+      </div>
+
+      <div class="team-member">
+        <div class="member-origin">前海思</div>
+        <div class="member-role">ISP 算法专家</div>
+        <div class="member-exp">15 年经验</div>
+        <div class="member-desc">旗舰手机处理器 ISP 算法核心成员，精通图像 pipeline 全链路调优</div>
+      </div>
+
+      <div class="team-member">
+        <div class="member-origin">前寒武纪</div>
+        <div class="member-role">AI 算法专家</div>
+        <div class="member-exp">5 年经验</div>
+        <div class="member-desc">AI 视觉算法研发，熟悉模型优化与 ASIC 化部署</div>
+      </div>
+
+      <div class="team-member">
+        <div class="member-origin">前寒武纪</div>
+        <div class="member-role">AI 算法专家</div>
+        <div class="member-exp">5 年经验</div>
+        <div class="member-desc">AI 模型训练与端侧部署，参与过多款 AI 芯片的算法开发</div>
+      </div>
+
+      <div class="team-member">
+        <div class="member-origin">前头部车企</div>
+        <div class="member-role">智驾算法专家</div>
+        <div class="member-exp">5 年经验</div>
+        <div class="member-desc">自动驾驶感知算法研发，深谙智驾数据闭环与训推一致性</div>
+      </div>
+
+      <div class="team-member">
+        <div class="member-origin">清华特招</div>
+        <div class="member-role">AI 研究员</div>
+        <div class="member-exp">应届</div>
+        <div class="member-desc">清华大学特招生，专注 AI 视觉前沿研究，为团队注入学术前沿视野</div>
+      </div>
+
+      <div class="team-member">
+        <div class="member-origin">资深工程师</div>
+        <div class="member-role">AI 压缩算法专家</div>
+        <div class="member-exp">多年经验</div>
+        <div class="member-desc">专注 AI 驱动的视频/图像压缩，RPO 码控与 RAW 压缩核心技术</div>
+      </div>
+
+    </div>
+
+    <!-- Team stats -->
+    <div class="team-summary">
+      <div class="team-stat">
+        <div class="team-stat-val">~15</div>
+        <div class="team-stat-label">核心算法 & 图像团队</div>
+      </div>
+      <div class="team-stat">
+        <div class="team-stat-val">30+</div>
+        <div class="team-stat-label">V1 项目全团队</div>
+      </div>
+      <div class="team-stat">
+        <div class="team-stat-val">深圳</div>
+        <div class="team-stat-label">全员同城，即刻启动</div>
+      </div>
+      <div class="team-stat">
+        <div class="team-stat-val">原班人马</div>
+        <div class="team-stat-label">已验证的技术与协作</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== SECTION: CLOSING - AI NATIVE ===== -->
+<section class="section-closing">
+  <div class="closing-container">
+
+    <div class="closing-badge">One More Thing</div>
+
+    <h2 class="closing-title">
+      这份 BP 由 <span class="em">AI Agent</span> 完成
+    </h2>
+
+    <div class="closing-meta">
+      <span class="meta-label">文案策划：</span>AI Agent（Claude）× 创始人协作<br>
+      <span class="meta-label">数据研究：</span>AI Agent 实时搜索全球市场数据并交叉验证<br>
+      <span class="meta-label">视觉设计：</span>AI Agent 生成全部 HTML/CSS 代码<br>
+      <span class="meta-label">竞品分析：</span>AI Agent 检索并结构化 14 家竞品信息<br>
+      <span class="meta-label">耗时：</span>从零到完整 BP，一个下午
+    </div>
+
+    <p class="closing-desc">
+      这不是炫技——这是我们团队<strong>日常的工作方式</strong>。<br><br>
+      V1 的每一位研发成员都在全面利用 AI Agent 进行<strong>研究、写代码、测试、文档撰写</strong>。<br>
+      我们相信 AI 不仅是我们的产品方向，更是我们的<strong>生产力武器</strong>。<br><br>
+      当别人还在讨论 AI 能做什么的时候，我们已经在用 AI 做一切。
+    </p>
+
+    <div class="closing-10x">10×</div>
+    <div class="closing-10x-label">我们的目标：将算法与芯片开发效率提升 10 倍</div>
+
+    <div class="closing-footer">
+      <div class="closing-brand">V1</div>
+      <div class="closing-slogan">让每一台机器，拥有真正的视觉皮层</div>
+    </div>
+
+  </div>
+</section>
+</body>
+</html>
